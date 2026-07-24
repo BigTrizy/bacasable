@@ -1,0 +1,31 @@
+services:
+
+  postgres:
+    image: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fibonacci"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    container_name: fibonacci-db
+
+    environment:
+      POSTGRES_USER: fibonacci
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: fibonacci
+
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+
+  worker:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    build: ./worker
+    container_name: fibonacci-worker
+
+
+volumes:
+  postgres-data:
